@@ -42,6 +42,7 @@ from Mailman.Cgi import Auth
 from Mailman.Logging.Syslog import syslog
 from Mailman.Utils import sha_new
 from Mailman.CSRFcheck import csrf_check
+from Mailman import CgiUtils
 
 # Set up i18n
 _ = i18n._
@@ -236,6 +237,10 @@ def main():
 
 
 def admin_overview(msg=''):
+    mlists = CgiUtils.get_list_attributes_for_overview('admin')
+    print AdminOverview(mlists, 'admin', msg).Format()
+    return
+
     # Show the administrative overview page, with the list of all the lists on
     # this host.  msg is an optional error message to display at the top of
     # the page.
@@ -251,7 +256,7 @@ def admin_overview(msg=''):
     # The table that will hold everything
     table = Table(border=0, width="100%")
     table.AddRow([Center(Header(2, legend))])
-    table.AddCellInfo(table.GetCurrentRowIndex(), 0, colspan=2,
+    table.AddCellInfo(table.GetCurrentRowIndex(), 0, colspan=get_column_count(),
                       bgcolor=mm_cfg.WEB_HEADER_COLOR)
     # Skip any mailing list that isn't advertised.
     advertised = []
@@ -260,7 +265,7 @@ def admin_overview(msg=''):
 
     for name in listnames:
         mlist = MailList.MailList(name, lock=0)
-        if mlist.advertised:
+        if mlist.advertised or mm_cfg.OverviewListUnadvertizedMailingLists:
             if mm_cfg.VIRTUAL_HOST_OVERVIEW and (
                    mlist.web_page_url.find('/%s/' % hostname) == -1 and
                    mlist.web_page_url.find('/%s:' % hostname) == -1):
@@ -330,6 +335,7 @@ def admin_overview(msg=''):
 
     doc.AddItem(table)
     doc.AddItem('<hr>')
+    CategoryAndPolicyLegend(doc)
     doc.AddItem(MailmanLogo())
     print doc.Format()
 

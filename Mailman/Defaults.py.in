@@ -1521,6 +1521,21 @@ EDITED_ARCHIVES_FILE = os.path.join(DATA_DIR, 'edited-archives.txt')
 
 # Allow Listing Mailinglists
 AllowListCommand = True
+OverviewListUnadvertizedMailingLists = False
+
+# Default list of Categories
+def CategoryDescriptions():
+    return {'ORG_ANNOUNCE':  'organizational announcements',\
+            'ORG_UNIT':      'team specific organizational announcements',\
+            'TOPIC_DISCUSS': 'topic related discussion',\
+            'TOPIC_LEISURE': 'off-time topics (leisure)'}
+
+# Default List of Policies
+def SimplifiedPolicyDescriptions():
+    return {'essential':     'subscription is inevitable for the audience',\
+            'authoritative': 'subscription needs approval, postings are moderated',\
+            'closed':        'subscription needs approval, postings are not moderated',\
+            'public':        'subscription is free to everybody, postings are not moderated'}
 
 # Import a bunch of version numbers
 from Version import *

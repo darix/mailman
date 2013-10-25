@@ -1057,3 +1057,17 @@ def suspiciousHTML(html):
     else:
         return False
 
+def category_dictionary_for_display(mlists):
+    """Given a list of MailLists, return a dictionary of
+    all of the list names, keyed by category"""
+    catdict = {}
+    for mlist in mlists:
+        list_categories = mlist.GetListCategories()
+        if not list_categories:
+            list_categories = ["Unclassified"]
+        for cat in list_categories:
+            if not catdict.has_key(cat):
+                catdict[cat] = []
+            catdict[cat].append(mlist)
+    return catdict
+
