@@ -256,6 +256,7 @@ def main():
             try:
                 if not dryrun:
                     mlist.ApprovedAddMember(userdesc, welcome, notifyadmin)
+                enc = sys.getdefaultencoding()
                 # Avoid UnicodeError if name can't be decoded
                 name = unicode(name, errors='replace').encode(enc, 'replace')
                 s = email.Utils.formataddr((name, addr)).encode(enc, 'replace')
@@ -278,6 +279,7 @@ def main():
                     # reasons is in the database.  Use a lower level remove to
                     # get rid of this member's entry
                     mlist.removeMember(addr)
+            enc = sys.getdefaultencoding()
             # Avoid UnicodeError if name can't be decoded
             name = unicode(name, errors='replace').encode(enc, 'replace')
             s = email.Utils.formataddr((name, addr)).encode(enc, 'replace')
