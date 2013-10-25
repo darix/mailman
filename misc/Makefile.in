@@ -47,9 +47,9 @@ SCRIPTSDIR=	$(prefix)/scripts
 
 SHELL=		/bin/sh
 PYTHONLIBDIR=	$(prefix)/pythonlib
-SETUPINSTOPTS=	--install-lib $(DESTDIR)$(PYTHONLIBDIR) \
-		--install-purelib $(DESTDIR)$(PYTHONLIBDIR) \
-		--install-data $(DESTDIR)$(PYTHONLIBDIR)
+SETUPINSTOPTS=	--root=$(DESTDIR) --install-lib $(PYTHONLIBDIR) \
+		--install-purelib $(PYTHONLIBDIR) \
+		--install-data $(PYTHONLIBDIR)
 SETUPCMD=	setup.py --quiet install $(SETUPINSTOPTS)
 PKGDIR= 	$(srcdir)
 
