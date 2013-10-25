@@ -5030,6 +5030,7 @@ build/cron/cull_bad_shunt:cron/cull_bad_shunt \
 build/cron/disabled:cron/disabled \
 build/cron/gate_news:cron/gate_news \
 build/cron/mailpasswds:cron/mailpasswds \
+build/cron/nightly_archives:cron/nightly_archives \
 build/cron/nightly_gzip:cron/nightly_gzip \
 build/cron/senddigests:cron/senddigests \
 "
