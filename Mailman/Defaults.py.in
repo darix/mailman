@@ -1519,6 +1519,8 @@ LISTCREATOR_PW_FILE = os.path.join(DATA_DIR, 'creator.pw')
 # File which stores a list of recently edited archives.
 EDITED_ARCHIVES_FILE = os.path.join(DATA_DIR, 'edited-archives.txt')
 
+# Allow Listing Mailinglists
+AllowListCommand = True
 
 # Import a bunch of version numbers
 from Version import *
