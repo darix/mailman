@@ -57,7 +57,7 @@ EMAILPKG=	@EMAILPKG@
 JACODECSPKG=	@JACODECSPKG@
 KOCODECSPKG=	@KOCODECSPKG@
 
-PACKAGES= $(EMAILPKG) $(JACODECSPKG) $(KOCODECSPKG)
+PACKAGES= $(EMAILPKG)
 
 # Modes for directories and executables created by the install
 # process.  Default to group-writable directories but
