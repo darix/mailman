@@ -33,7 +33,7 @@
 const char* logident = LOG_IDENT;
 char* script = SCRIPTNAME;
 const char* parentgroup = LEGAL_PARENT_GROUP;
-
+const char* gidfile = "/etc/mailman/mailman.cgi-gid";
 
 int
 main(int argc, char** argv, char** env)
@@ -42,7 +42,7 @@ main(int argc, char** argv, char** env)
         char* fake_argv[3];
 
         running_as_cgi = 1;
-        check_caller(logident, parentgroup);
+        check_caller(logident, gidfile);
 
         /* For these CGI programs, we can ignore argc and argv since they
          * don't contain anything useful.  `script' will always be the driver

@@ -27,6 +27,7 @@
 
 const char* parentgroup = LEGAL_PARENT_GROUP;
 const char* logident = "Mailman mail-wrapper";
+const char* gidfile = "/etc/mailman/mailman.mail-gid";
 
 
 
@@ -74,7 +75,7 @@ main(int argc, char** argv, char** env)
                 fatal(logident, MAIL_ILLEGAL_COMMAND,
                       "Illegal command: %s", argv[1]);
 
-        check_caller(logident, parentgroup);
+        check_caller(logident, gidfile);
 
         /* If we got here, everything must be OK */
         status = run_script(argv[1], argc, argv, env);

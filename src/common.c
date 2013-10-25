@@ -117,47 +117,27 @@ fatal(const char* ident, int exitcode, char* format, ...)
 /* Is the parent process allowed to call us?
  */
 void
-check_caller(const char* ident, const char* parentgroup)
+check_caller(const char* ident, const char* gidfile)
 {
-        GID_T mygid = getgid();
-        struct group *mygroup = getgrgid(mygid);
-        char* option;
-        char* server;
-        char* wrapper;
+       FILE *gidfile_h;
+       GID_T parentgid;
+       GID_T mygid = getgid();
 
-        if (running_as_cgi) {
-                option = "--with-cgi-gid";
-                server = "web";
-                wrapper = "CGI";
-        }
-        else {
-                option = "--with-mail-gid";
-                server = "mail";
-                wrapper = "mail";
-        }
+       if ((gidfile_h = fopen(gidfile, "r")) == NULL)
+               fatal(ident, GROUP_NAME_NOT_FOUND,
+                       "Cannot open wrapper configuration file: %s",
+                       strerror(errno));
+       if(!fscanf(gidfile_h, "%d", &parentgid))
+               fatal(ident, GROUP_NAME_NOT_FOUND,
+                       "Cannot read wrapper configuration file.");
+       fclose(gidfile_h);
 
-        if (!mygroup)
-                fatal(ident, GROUP_NAME_NOT_FOUND,
-                      "Failure to find group name for GID %d.  Mailman\n"
-                      "expected the %s wrapper to be executed as group\n"
-                      "\"%s\", but the system's %s server executed the\n"
-                      "wrapper as GID %d for which the name could not be\n"
-                      "found.  Try adding GID %d to your system as \"%s\",\n"
-                      "or tweak your %s server to run the wrapper as group\n"
-                      "\"%s\".",
-                      mygid, wrapper, parentgroup, server, mygid, mygid,
-                      parentgroup, server, parentgroup);
+       if (parentgid != mygid) {
+               fatal(ident, GROUP_MISMATCH,
+                     "Failure to exec script. WANTED gid %ld, GOT gid %ld.",
+               parentgid, mygid);
+       }
 
-        if (strcmp(parentgroup, mygroup->gr_name))
-                fatal(ident, GROUP_MISMATCH,
-                      "Group mismatch error.  Mailman expected the %s\n"
-                      "wrapper script to be executed as group \"%s\", but\n"
-                      "the system's %s server executed the %s script as\n"
-                      "group \"%s\".  Try tweaking the %s server to run the\n"
-                      "script as group \"%s\", or re-run configure, \n"
-                      "providing the command line option `%s=%s'.",
-                      wrapper, parentgroup, server, wrapper, mygroup->gr_name,
-                      server, parentgroup, option, mygroup->gr_name);
 }
 
 
