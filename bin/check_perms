@@ -71,6 +71,7 @@ class State:
 STATE = State()
 
 DIRPERMS = S_ISGID | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
+DIRPERMS_VAR = S_ISGID | S_IRWXU | S_IROTH | S_IXOTH
 QFILEPERMS = S_ISGID | S_IRWXU | S_IRWXG
 PYFILEPERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 ARTICLEFILEPERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP
@@ -182,8 +183,7 @@ def checkall():
         prefix = mm_cfg.PREFIX
         print _('checking mode for %(prefix)s')
     dirs = {}
-    for d in (mm_cfg.PREFIX, mm_cfg.EXEC_PREFIX, mm_cfg.VAR_PREFIX,
-              mm_cfg.LOG_DIR):
+    for d in (mm_cfg.VAR_PREFIX, mm_cfg.LOG_DIR):
         dirs[d] = True
     for d in dirs.keys():
         try:
@@ -192,14 +192,24 @@ def checkall():
             if e.errno <> errno.ENOENT: raise
             print _('WARNING: directory does not exist: %(d)s')
             continue
-        if (mode & DIRPERMS) <> DIRPERMS:
-            STATE.ERRORS += 1
-            print _('directory must be at least 02775: %(d)s'),
-            if STATE.FIX:
-                print _('(fixing)')
-                os.chmod(d, mode | DIRPERMS)
-            else:
-                print
+        if (d == mm_cfg.VAR_PREFIX):
+            if (mode & DIRPERMS_VAR) <> DIRPERMS_VAR:
+                STATE.ERRORS += 1
+                print _('directory must be 02755: %(d)s'),
+                if STATE.FIX:
+                    print _('(fixing)')
+                    os.chmod(d, mode | DIRPERMS_VAR)
+                else:
+                    print
+        else:
+            if (mode & DIRPERMS) <> DIRPERMS:
+                STATE.ERRORS += 1
+                print _('directory must be at least 02775: %(d)s'),
+                if STATE.FIX:
+                    print _('(fixing)')
+                    os.chmod(d, mode | DIRPERMS)
+                else:
+                    print
         # check all subdirs
         os.path.walk(d, checkwalk, STATE)
 
