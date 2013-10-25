@@ -350,7 +350,7 @@ class MailList(HTMLFormatter, Deliverer, ListAdmin,
         self.from_is_list = mm_cfg.DEFAULT_FROM_IS_LIST
         self.anonymous_list = mm_cfg.DEFAULT_ANONYMOUS_LIST
         internalname = self.internal_name()
-        self.real_name = internalname[0].upper() + internalname[1:]
+        self.real_name = internalname
         self.description = ''
         self.info = ''
         self.welcome_msg = ''
