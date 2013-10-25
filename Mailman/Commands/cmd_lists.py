@@ -35,6 +35,9 @@ def gethelp(mlist):
 
 
 def process(res, args):
+    if not mm_cfg.AllowListCommand:
+        res.results.append(_('(The list command has been disabled for this site.)'))
+        return STOP
     mlist = res.mlist
     if args:
         res.results.append(_('Usage:'))
