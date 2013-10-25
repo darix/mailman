@@ -137,6 +137,8 @@ class Archiver:
 
     def GetBaseArchiveURL(self):
         url = self.GetScriptURL('private', absolute=1) + '/'
+        if not self.archive or not self.archive_private:
+            return mm_cfg.MLARCH_BASEURL + self.internal_name()
         if self.archive_private:
             return url
         else:
