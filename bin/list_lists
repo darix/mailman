@@ -37,6 +37,12 @@ Where:
     -b / --bare
         Displays only the list name, with no description.
 
+    -r / --private-archives
+        Displays only lists with private archives.
+
+    -u / --public-archives
+        Displays only lists with public archives.
+
     -h / --help
         Print this text and exit.
 
@@ -68,8 +74,10 @@ def usage(code, msg=''):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'apbV:h',
+        opts, args = getopt.getopt(sys.argv[1:], 'aprubV:h',
                                    ['advertised', 'public-archive', 'bare',
+                                    'private-archives',
+                                    'public-archives',
                                     'virtual-host-overview=',
                                     'help'])
     except getopt.error, msg:
@@ -79,6 +87,7 @@ def main():
     public = 0
     vhost = None
     bare = 0
+    private_archives = 0
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
@@ -90,6 +99,10 @@ def main():
             vhost = arg
         elif opt in ('-b', '--bare'):
             bare = 1
+        elif opt in ('-r', '--private-archives'):
+            private_archives = 1
+        elif opt in ('-u', '--public-archives'):
+            public = 1
 
     names = Utils.list_names()
     names.sort()
@@ -101,6 +114,8 @@ def main():
         if advertised and not mlist.advertised:
             continue
         if public and mlist.archive_private:
+            continue
+        if private_archives and not mlist.archive_private:
             continue
         if vhost and mm_cfg.VIRTUAL_HOST_OVERVIEW and \
                vhost.find(mlist.web_page_url) == -1 and \
