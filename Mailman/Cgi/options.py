@@ -697,6 +697,10 @@ address.  Upon confirmation, any other mailing list containing the address
             msg += _('You may get one last digest.')
 
         options_page(mlist, doc, user, cpuser, userlang, msg)
+        if mlist.isMember(user):
+            options_page(mlist, doc, user, cpuser, userlang)
+        else:
+            loginpage(mlist, doc, user, userlang)
         print doc.Format()
         return
 
