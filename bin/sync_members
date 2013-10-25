@@ -256,6 +256,7 @@ def main():
             try:
                 if not dryrun:
                     mlist.ApprovedAddMember(userdesc, welcome, notifyadmin)
+                enc = sys.getdefaultencoding()
                 s = email.Utils.formataddr((name, addr)).encode(enc, 'replace')
                 print _('Added  : %(s)s')
             except Errors.MMAlreadyAMember:
@@ -276,6 +277,7 @@ def main():
                     # reasons is in the database.  Use a lower level remove to
                     # get rid of this member's entry
                     mlist.removeMember(addr)
+                    enc = sys.getdefaultencoding()
             s = email.Utils.formataddr((name, addr)).encode(enc, 'replace')
             print _('Removed: %(s)s')
 
