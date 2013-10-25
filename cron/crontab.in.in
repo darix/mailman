@@ -25,3 +25,7 @@
 #
 # At 4:30AM daily, cull old entries from the 'bad' and 'shunt' queues.
 30 4 * * * @PYTHON@ -S @prefix@/cron/cull_bad_shunt
+#
+# At 3:57am every night, reprocess archives that have been edited.
+57 3 * * * @PYTHON@ -S @prefix@/cron/nightly_archives
+

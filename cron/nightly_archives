@@ -1,0 +1,126 @@
+#! @PYTHON@
+# 
+# Copyright (C) 1998,1999,2000,2001,2002 by the Free Software Foundation, Inc.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software 
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+"""Redo the archives which have been edited.  The files specified in 
+mm_cfg.EDITED_ARCHIVES_FILE is used as input.
+
+This script should be run nightly from cron.  When run from the command line,
+the following usage is understood:
+
+Usage: %(program)s [-v] [-h]
+
+Where:
+    --verbose
+    -v
+        print each list as its archives are being redone
+
+    --help
+    -h
+        print this message and exit
+
+"""
+
+import sys
+import os
+import time
+from stat import *
+from string import strip
+import getopt
+import paths
+from Mailman.i18n import _
+
+import paths
+# mm_cfg must be imported before the other modules, due to the side-effect of
+# it hacking sys.paths to include site-packages.  Without this, running this
+# script from cron with python -S will fail.
+from Mailman import mm_cfg
+from Mailman import Utils
+from Mailman import MailList
+
+
+
+program = sys.argv[0]
+VERBOSE = 0
+
+def usage(code, msg=''):
+    if code:
+        fd = sys.stderr
+    else:
+        fd = sys.stdout
+    print >> fd, _(__doc__) % globals()
+    if msg:
+        print >> fd, msg
+    sys.exit(code)
+
+def main():
+    global VERBOSE
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'vh', ['verbose', 'help'])
+    except getopt.error, msg:
+        usage(1, msg)
+
+    # defaults
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage(0)
+        elif opt in ('-v', '--verbose'):
+            VERBOSE = 1
+
+    # get listnames from edited-archives files
+    try:
+        fp = open(mm_cfg.EDITED_ARCHIVES_FILE)
+        listnames = fp.readlines()
+        fp.close()
+    except IOError:
+        if VERBOSE:
+            print 'No archives to process.'
+        return
+
+    listnames.sort()
+    listnames = RemoveDuplicates(listnames)
+    # process all the specified lists
+    for name in listnames:
+        name = strip(name)
+        mlist = MailList.MailList(name, lock=0)
+        if not mlist:
+            continue
+
+        if VERBOSE:
+            print 'Processing list: ' + name
+        # note: locking is taken care of in bin/arch
+        archcommand = os.path.join(mm_cfg.EXEC_PREFIX, 'bin/arch')
+        os.system(archcommand + ' -q --wipe ' + name)
+
+    # remove edited-archives file
+    os.unlink(mm_cfg.EDITED_ARCHIVES_FILE)
+
+def RemoveDuplicates(list):
+    n = len(list)
+    last = list[0]
+    i = 1
+    lasti = 1
+    while i < n:
+        if list[i] != last:
+            list[lasti] = list[i]
+            last = list[i]
+            lasti += 1
+        i += 1
+    return list[:lasti]
+
+if __name__ == '__main__':
+    main()

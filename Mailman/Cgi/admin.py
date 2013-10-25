@@ -445,6 +445,8 @@ def show_results(mlist, doc, category, subcat, cgidata):
                             _('Go to the general list information page')))
     otherlinks.AddItem(Link(mlist.GetScriptURL('edithtml'),
                             _('Edit the public HTML pages and text files')))
+    otherlinks.AddItem(Link(mlist.GetScriptURL('editarch'),
+                            _('Edit the list archives')))
     otherlinks.AddItem(Link(mlist.GetBaseArchiveURL(),
                             _('Go to list archives')).Format() +
                        '<br>&nbsp;<br>')

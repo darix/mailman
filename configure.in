@@ -689,6 +689,7 @@ cron/cull_bad_shunt \
 cron/disabled \
 cron/gate_news \
 cron/mailpasswds \
+cron/nightly_archives \
 cron/nightly_gzip \
 cron/senddigests \
 ])
