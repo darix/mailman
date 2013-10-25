@@ -29,6 +29,7 @@ for python and, recursively, for nested HTML formatting objects.
 
 
 import types
+import string
 
 from Mailman import mm_cfg
 from Mailman import Utils
@@ -697,3 +698,193 @@ class SelectOptions:
           text = text + spaces + opt + "\n"
 
       return text + spaces + '</Select>'
+
+class Anchor:
+    def __init__(self, name):
+      self.name = name
+
+    def Format(self, indent=0):
+      return '<a name="%s"></a>' % (HTMLFormatObject(self.name, indent))
+
+def TextWithLegend(text):
+    def url(file):
+         return mm_cfg.IMAGE_LOGOS + file
+    return '%s <a href="#%s"><img src="%s"></a>' % (text, text+'desc', url("mm-text.png"))
+
+def CategoryAndPolicyLegend(doc):
+    if mm_cfg.LISTINFO_USE_CATEGORIES:
+        catdesc    = mm_cfg.CategoryDescriptions()
+        policydesc = mm_cfg.SimplifiedPolicyDescriptions()
+        table = Table(border=0, width="100%")
+        keys = catdesc.keys()
+        keys.sort()
+        for cat in keys:
+            table.AddRow([Anchor(cat+'desc'), Bold(cat+":"), catdesc[cat]])
+        table.AddRow(['&nbsp;','&nbsp;'])
+        keys = policydesc.keys()
+        keys.sort()
+        for policy in keys:
+            table.AddRow([Anchor(policy+'desc'), Bold(policy+":"), policydesc[policy]])
+        doc.AddItem(table)
+        doc.AddItem('<hr>')
+
+def get_column_count():
+    if mm_cfg.LISTINFO_USE_CATEGORIES:
+       return 3
+    else:
+       return 2
+
+def OverviewTable(advertised, legend, script_url_part ,msg = '', welcome_extend = []):
+    # Present the general listinfo overview
+    # Set up the document and assign it the correct language.  The only one we
+    # know about at the moment is the server's default.
+    doc = Document()
+    doc.set_language(mm_cfg.DEFAULT_SERVER_LANGUAGE)
+    doc.SetTitle(legend)
+    table = Table(border=0, width="100%")
+    table.AddRow([Center(Header(2, legend))])
+    table.AddCellInfo(table.GetCurrentRowIndex(), 0, colspan=get_column_count(),
+                      bgcolor=mm_cfg.WEB_HEADER_COLOR)
+
+    # Greeting depends on whether there was an error or not
+    if msg:
+        greeting = FontAttr(msg, color="ff5060", size="+1")
+    else:
+        greeting = FontAttr(_('Welcome!'), size='+2')
+
+    welcome = [greeting]
+    mailmanlink = Link(mm_cfg.MAILMAN_URL, _('Mailman')).Format()
+    if welcome_extend:
+        welcome.extend(welcome_extend)
+    
+    table.AddRow([apply(Container, welcome)])
+    table.AddCellInfo(max(table.GetCurrentRowIndex(), 0), 0, colspan=get_column_count())
+
+    if advertised:
+        table.AddRow(['&nbsp;', '&nbsp;'])
+        table.AddRow([Bold(FontAttr(_('List'), size='+2')),
+                      Bold(FontAttr(_('Description'), size='+2')),
+                      ])
+        highlight = 1
+        if mm_cfg.LISTINFO_USE_CATEGORIES:
+            catdict = Utils.category_dictionary_for_display(advertised)
+            list_categories = catdict.keys()
+            list_categories.sort()
+
+            catdesc    = mm_cfg.CategoryDescriptions()
+            policydesc = mm_cfg.SimplifiedPolicyDescriptions()
+
+            table.AddRow([Bold("Lists sorted by category:")])
+            table.AddCellInfo(max(table.GetCurrentRowIndex(), 0), 0,
+                              colspan=get_column_count(), align="center")
+
+            list_links = map(lambda l: '<a href="#'+l+'">'+l+'</a>', list_categories)
+            table.AddRow([string.join(list_links, ", ")])
+            table.AddCellInfo(max(table.GetCurrentRowIndex(), 0), 0,
+                              colspan=get_column_count(), align="center")
+            for cat in list_categories:
+                table.AddRow([Anchor(cat), '&nbsp;'])
+                if not catdesc.has_key(cat):
+                    catdesc[cat] = 'yet unclassified mailing lists'
+                table.AddRow([Bold(TextWithLegend(cat))])
+                table.AddCellInfo(max(table.GetCurrentRowIndex(), 0), 0,
+                                  colspan=get_column_count(), align="center")
+                highlight = 1
+                for mlist in catdict[cat]:
+                    policy = mlist.GetSimplifiedPolicy()
+                    table.AddRow(
+                        [Link(mlist.GetScriptURL(script_url_part), Bold(mlist.real_name)),
+                         mlist.description or Italic('[no description available]'),
+                         TextWithLegend(policy)
+                        ])
+
+                    if highlight and mm_cfg.WEB_HIGHLIGHT_COLOR:
+                        table.AddRowInfo(table.GetCurrentRowIndex(),
+                                         bgcolor=mm_cfg.WEB_HIGHLIGHT_COLOR)
+                    highlight = not highlight
+        else:
+            for url, real_name, description in advertised:
+                row = [Link(url, Bold(real_name)),
+                          description or Italic(_('[no description available]'))]
+                table.AddRow(row)
+                if highlight and mm_cfg.WEB_HIGHLIGHT_COLOR:
+                    table.AddRowInfo(table.GetCurrentRowIndex(),
+                                     bgcolor=mm_cfg.WEB_HIGHLIGHT_COLOR)
+                highlight = not highlight
+
+    doc.AddItem(table)
+    doc.AddItem('<hr>')
+    CategoryAndPolicyLegend(doc)
+    doc.AddItem(MailmanLogo())
+    return doc
+
+def ListinfoOverview(mlists, script_url_part, msg=''):
+    hostname    = Utils.get_domain()
+    siteowner   = Utils.get_site_email()
+    advertised  = mlists
+    mailmanlink = Link(mm_cfg.MAILMAN_URL, _('Mailman')).Format()
+
+    legend = _("%(hostname)s Mailing Lists")
+    welcome = []
+    adj = msg and _('right ') or ''
+    if not advertised:
+        welcome.extend(
+            _('''<p>There currently are no publicly-advertised
+            %(mailmanlink)s mailing lists on %(hostname)s.'''))
+    else:
+        welcome.append(
+            _('''<p>Below is a listing of all the public mailing lists on
+            %(hostname)s.  Click on a list name to get more information about
+            the list, or to subscribe, unsubscribe, and change the preferences
+            on your subscription.'''))
+    welcome.extend(
+        (_(''' To visit the general information page for an unadvertised list,
+        open a URL similar to this one, but with a '/' and the %(adj)s
+        list name appended.
+        <p>List administrators, you can visit '''),
+         Link(Utils.ScriptURL('admin'),
+              _('the list admin overview page')),
+         _(''' to find the management interface for your list.
+         <p>If you are having trouble using the lists, please contact '''),
+         Link('mailto:' + siteowner, siteowner),
+         '.<p>'))
+    return OverviewTable(advertised, legend, script_url_part, msg, welcome)
+
+def AdminOverview(mlists, script_url_part, msg = ''):
+    hostname    = Utils.get_domain()
+    siteowner   = Utils.get_site_email()
+    advertised  = mlists
+    mailmanlink = Link(mm_cfg.MAILMAN_URL, _('Mailman')).Format()
+
+    legend = _('%(hostname)s mailing lists - Admin Links')
+
+    welcome = []
+    adj = msg and _('right ') or ''
+    if not advertised:
+        welcome.extend([
+            _('''<p>There currently are no publicly-advertised %(mailmanlink)s
+            mailing lists on %(hostname)s.'''),
+            ])
+    else:
+        welcome.extend([
+            _('''<p>Below is the collection of publicly-advertised
+            %(mailmanlink)s mailing lists on %(hostname)s.  Click on a list
+            name to visit the configuration pages for that list.'''),
+            ])
+    creatorurl = Utils.ScriptURL('create')
+    welcome.extend([
+    _('''To visit the administrators configuration page for an
+    unadvertised list, open a URL similar to this one, but with a '/' and
+    the %(extra)slist name appended.  If you have the proper authority,
+    you can also <a href="%(creatorurl)s">create a new mailing list</a>.
+
+    <p>General list information can be found at '''),
+    Link(Utils.ScriptURL('listinfo'),
+         _('the mailing list overview page')),
+    '.',
+    _('<p>(Send questions and comments to '),
+    Link('mailto:%s' % siteowner, siteowner),
+    '.)<p>',
+    ])
+
+    return OverviewTable(advertised, legend, script_url_part, msg, welcome)
