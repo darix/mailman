@@ -71,7 +71,7 @@ def process(mlist, msg, msgdata):
     if hits:
         msgdata['topichits'] = hits.keys()
         change_header('X-Topics', NLTAB.join(hits.keys()),
-                      mlist, msg, msgdata, delete=False)
+                      mlist, msg, msgdata, False)
 
 
 
